@@ -1,6 +1,5 @@
 const jwt = require('jsonwebtoken');
-const prisma = require('../config/prisma');
-
+require('dotenv').config();
 
 const secret = process.env.JWT_SECRET;
 const tokenExpiryDays = 10;
@@ -13,18 +12,7 @@ exports.generateToken = async (user) => {
   };
 
   const token = jwt.sign(payload, secret, { expiresIn: `${tokenExpiryDays}d` });
-  const expiresAt = new Date(Date.now() + tokenExpiryDays * 24 * 3600 * 1000);
-
-  await prisma.token.create({
-    data: {
-      refresh_token: token,
-      expires_at: expiresAt,
-      User: {
-        connect: { id: user.id },
-      },
-    },
-  });
-
+  
   return token;
 };
 
@@ -34,12 +22,6 @@ exports.verifyToken = (token) => {
   } catch (error) {
     return null;
   }
-};
-
-exports.deleteToken = async (token) => {
-  await prisma.token.deleteMany({
-    where: { refresh_token: token },
-  });
 };
 
 exports.decodeToken = (token) => {
